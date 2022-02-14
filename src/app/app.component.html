@@ -1,1 +1,18 @@
-<p>test</p>
+<div class="m-5">
+  <h1 class="text-2xl mb-4">{{ title }}</h1>
+
+  <input
+    class="w-full border-2 mb-2 px-1"
+    type="text"
+    placeholder="Search for shops near you..."
+    (change)="handleSearch($event)"
+  />
+
+  <div class="border-2">
+    <agm-map
+      [zoom]="zoom"
+      [latitude]="latitude"
+      [longitude]="longitude"
+    ></agm-map>
+  </div>
+</div>
