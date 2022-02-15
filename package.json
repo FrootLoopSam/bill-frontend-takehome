@@ -7,7 +7,7 @@
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "aws-deploy": "aws s3 sync dist/my-dream-app/ s3://bill-frontend-demo"
+    "aws-deploy": "aws s3 sync dist/bill-frontend-app/ s3://bill-frontend-demo"
   },
   "private": true,
   "dependencies": {
