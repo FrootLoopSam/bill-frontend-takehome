@@ -7,13 +7,14 @@ import {} from 'googlemaps';
   styleUrls: ['./app.component.scss'],
 })
 export class AppComponent implements AfterViewInit {
+  infoWindow = new google.maps.InfoWindow();
   latitude: number;
   longitude: number;
+  map: google.maps.Map;
   title = 'Bill.com Frontend App';
   zoom: number;
 
   @ViewChild('map') mapElement: any;
-  map: google.maps.Map;
 
   // Use AfterViewInit to ensure elements are available
   ngAfterViewInit(): void {
@@ -44,11 +45,14 @@ export class AppComponent implements AfterViewInit {
     searchInput.addListener('places_changed', () => {
       const places = searchInput.getPlaces();
 
-      if (places.length == 0) {
+      if (places.length === 0) {
         return;
       }
 
-      // Clear out the old markers.
+      // Close info windows on search
+      this.infoWindow.close();
+
+      // Clear out old markers.
       markers.forEach((marker) => {
         marker.setMap(null);
       });
@@ -58,8 +62,6 @@ export class AppComponent implements AfterViewInit {
       const bounds = new google.maps.LatLngBounds();
 
       places.forEach((place) => {
-        console.log('place', place);
-
         if (!place.geometry || !place.geometry.location) {
           console.log('Returned place contains no geometry');
           return;
@@ -74,22 +76,18 @@ export class AppComponent implements AfterViewInit {
         };
 
         // Create a marker for each result
-        markers.push(
-          new google.maps.Marker({
-            icon,
-            map: this.map,
-            title: place.name,
-            position: place.geometry.location,
-          })
-        );
-
-        // Add click listener to markers
-        // TODO: Open window on click to display title and rating
-        markers.forEach((marker) => {
-          marker.addListener('click', () => {
-            console.log('working', place.name);
-          });
+        const marker = new google.maps.Marker({
+          icon,
+          map: this.map,
+          title: place.name,
+          position: place.geometry.location,
         });
+
+        // Add event listener to marker
+        marker.addListener('click', () => {
+          this.openInfoWindow(marker, place.rating);
+        });
+        markers.push(marker);
 
         if (place.geometry.viewport) {
           // Only geocodes have viewport.
@@ -98,7 +96,31 @@ export class AppComponent implements AfterViewInit {
           bounds.extend(place.geometry.location);
         }
       });
+
+      // Resize view to fit results
       this.map.fitBounds(bounds);
+    });
+  }
+
+  /**
+   * Opens info window with label and rating when marker is clicked
+   * @param marker Google map marker
+   * @returns void
+   */
+  openInfoWindow(marker: google.maps.Marker, rating: number | undefined): void {
+    // Close info window if already open
+    this.infoWindow.close();
+
+    this.infoWindow.setContent(
+      `<div><span>${
+        marker.getTitle() || 'Title unavailable'
+      }</span></br><span>Rating: ${rating}</span></div>`
+    );
+    this.infoWindow.open(this.map, marker);
+
+    // Close info window if user clicks outsice
+    this.map.addListener('click', () => {
+      this.infoWindow.close();
     });
   }
 }
